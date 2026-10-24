@@ -1,62 +1,26 @@
-# CrisisSignal — Situation Intelligence Dashboard (frontend)
+# CrisisSignal - Ingestion into Supabase (no Docker)
 
-A production-grade **frontend-only** disaster monitoring / situation intelligence dashboard.
-All events, sources, alerts and metrics are **fictional sample data** — there is no backend,
-database, API, NLP or data-processing logic in this project.
-
-## Stack
-
-- **React 18 + TypeScript** (Vite)
-- **d3-geo + topojson-client + world-atlas** — real world map rendered from bundled Natural Earth
-  topology (fully offline; no map tiles, no external APIs)
-- **Recharts** — trend / mix charts
-- **lucide-react** — iconography
-- Hand-rolled dark design system (`src/index.css`) — CSS variables, 12-column grid, responsive
+## One-time setup (Windows)
+1. Create a free project at https://supabase.com (remember the database password).
+2. Supabase: click **Connect** -> copy the **Session pooler** connection string.
+3. Copy `.env.example` to `.env`; paste it as DATABASE_URL (insert your password).
+4. Get a FIRMS key (link in `.env.example`) and paste it as FIRMS_MAP_KEY.
+5. Terminal in this folder (Python 3.11 or 3.12 recommended):
+       py -m venv .venv
+       .venv\Scripts\activate
+       pip install -r backend\requirements.txt
+       cd backend
 
 ## Run
+    python -m app.cli usgs      test one source (also: firms, sachet)
+    python -m app.cli all       run every source once
+    python -m app.cli status    show what is stored
+    python -m app.run           run forever on the schedule (Ctrl+C to stop)
 
-```bash
-npm install
-npm run dev        # http://localhost:5173
-npm run build      # production bundle in dist/
-```
+Tables appear automatically. See the data in Supabase -> Table Editor:
+`raw_events`, `ingestion_log`, `events`.
 
-## Screens
+Logs: `backend/logs/ingestion.log`. Retries: 3 tries (waits 2s, 6s).
 
-| Screen | Route (nav) | Contents |
-| --- | --- | --- |
-| Overview | `Overview` | Filter bar (location / type / severity / time window), 4 KPI cards with sparklines, interactive world map (pan, wheel-zoom, hover tooltips, click-select, center-on-event, cursor lat/lon readout), Active Situations panel, Situation Focus card (confidence, evidence, radius, population), Weather & Sensors (tiles, sensor mesh, advisories), Events-per-day chart (7/14/30 d), Event timeline, Severity & type mix, Feed health |
-| Event register | `Events` | Searchable, status-filterable table of all tracked events → click a row for the dossier |
-| Event dossier | via any event | Hero header with severity/status badges + KPI strip, focused map with adaptive zoom, dashed impact ring + scale bar + radar sweep, evidence log, timeline, regional activity chart, source contributions, weather & impact summary |
-| Data sources | `Sources` | Feed health KPIs + ingest table (status, rate, sync, uptime, coverage) |
-| Alert stream | `Alerts` | Severity-coded alert feed with working acknowledge / acknowledge-all and deep links into events |
-
-## What is "working" in the UI
-
-- Filters actually filter the map, situation list, KPIs and analytics (client-side over mock data)
-- Map: drag to pan, wheel/buttons to zoom, crosshair centers the selected event, markers pulse for
-  live/escalating events, hover tooltips, double-click opens the dossier
-- Selecting a situation (map marker or list row) drives the focus card, weather panel and timeline
-- Ticking UTC clock, "updated Ns ago" counter with refresh action
-- Alert acknowledgement state (badge counts update everywhere)
-- Subscribe toggles, event search, status chips, chart range switches (7/14/30 d)
-
-## Structure
-
-```
-src/
-  data/mock.ts          # all sample data + deterministic trend generator
-  lib/meta.tsx          # severity/status/type metadata, formatters, color helpers
-  components/
-    chrome.tsx          # top nav, filter bar, footer, search box
-    ui.tsx              # Card, badges, pills, progress, sparkline, empty states
-    EventMap.tsx        # interactive world map + focused impact map
-    panels.tsx          # KPI cards, situations list, focus, weather, timeline, charts
-    views.tsx           # Events / Sources / Alerts screens
-    DetailView.tsx      # full event dossier
-  App.tsx               # view routing + filter/selection/alert state
-  index.css             # design system
-smoke/                  # SSR render smoke test (vite build -c smoke/vite.ssr.config.ts)
-```
-
-*Demonstration interface — all events, sources & metrics are fictional sample data.*
+## Optional later
+    python serve.py     REST API at http://127.0.0.1:8000/docs (for the dashboard)
